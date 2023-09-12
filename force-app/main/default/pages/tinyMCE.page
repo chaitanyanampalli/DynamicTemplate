@@ -1,0 +1,668 @@
+<apex:page lightningStylesheets="true"  controller="POV_Controller" showHeader="false" sidebar="false" standardStylesheets="false" docType="html-5.0" applyHtmlTag="false">
+
+<head>
+    <script>  
+        var content = '{!content}';
+        var template = '{!param1}';
+        var lexOrigin = '{!lexOrigin}';
+        var origin = "https://chaitanya-dev-edition-dev-ed.lightning.force.com";
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('setContent');
+            const customElement = document.getElementById('content');
+            if(template){
+                customElement.innerHTML = template;
+            }else{
+                customElement.innerHTML = unescapeHTML(content);
+            }
+            let elements = document.querySelectorAll("div#content img");
+            elements.forEach((element) => {
+              element.classList.add('resizable-image');
+              console.log('resize1',element);
+            });          
+            const resizableImages = document.querySelectorAll(".resizable-image");
+            resizableImages.forEach((image) => {
+            let initialWidth, initialHeight, initialX, initialY;
+            image.addEventListener("mousedown", (e) => {
+              e.preventDefault();
+
+              initialWidth = image.clientWidth;
+              initialHeight = image.clientHeight;
+              initialX = e.clientX;
+              initialY = e.clientY;
+
+              const mouseMoveHandler = (event) => {
+                const widthDifference = event.clientX - initialX;
+                const heightDifference = event.clientY - initialY;
+                const newWidth = initialWidth + widthDifference;
+                const newHeight = initialHeight + heightDifference;
+
+                image.style.width = `${newWidth}px`;
+                image.style.height = `${newHeight}px`;
+              };
+              const mouseUpHandler = () => {
+                document.removeEventListener("mousemove", mouseMoveHandler);
+                document.removeEventListener("mouseup", mouseUpHandler);
+              };
+              document.addEventListener("mousemove", mouseMoveHandler);
+              document.addEventListener("mouseup", mouseUpHandler);
+            });
+          });
+        });
+        function unescapeHTML(html) {
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            return doc.documentElement.textContent;
+        }
+    </script>
+    <style>
+      * {
+          padding: 0;
+          margin: 0;
+          box-sizing: border-box;
+        }
+        .grid-container {
+              display: grid;
+              grid-template-columns:150px 5fr;
+              gap: 10px;
+        }
+        .delete-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: none;
+  cursor: pointer;
+  padding: 4px;
+  background-color: red;
+  color: white;
+  border-radius: 100%;
+}
+.iframe-container:hover .delete-icon {
+  display: block;
+}
+        .container {
+          background-color: #ffffff;
+          /* width: 110vmin; */
+          padding: 20px 30px;
+          left: 50%;
+          top: 50%;
+          border-radius: 10px;
+          box-shadow: 0 25px 50px rgba(7, 20, 35, 0.2);
+          border: 2px solid #eee;
+          margin-top: 10px;
+        }
+        .options {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 15px;
+        }
+        button {
+          height: 28px;
+          place-items: center;
+          border-radius: 3px;
+          border: none;
+          background-color: #ffffff;
+          outline: none;
+          color: #020929;
+        }
+        select {
+          padding: 7px;
+          border: 1px solid #020929;
+          border-radius: 3px;
+        }
+        .options label,
+        .options select {
+          font-family: "Poppins", sans-serif;
+        }
+        .input-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        input[type="color"] {
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          background-color: transparent;
+          width: 40px;
+          height: 28px;
+          border: none;
+          cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch {
+          border-radius: 15px;
+          box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px #020929;
+        }
+        input[type="color"]::-moz-color-swatch {
+          border-radius: 15px;
+          box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px #020929;
+        }
+        #text-input {
+          margin-top: 10px;
+          border: 1px solid #dddddd;
+          padding: 20px;
+          height: 50vh;
+        }
+        .active {
+          background-color: #e0e9ff;
+        }
+        .resize-handle {
+          width: 10px;
+          height: 10px;
+          background-color: #000;
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          cursor: se-resize;
+        }
+        .iframe-container {
+          position: relative;
+          overflow: hidden;
+          display: inline-block;
+        }
+        #div1 {
+          width: 350px;
+          height: 300px;
+          padding: 10px;
+          border: 1px solid #aaaaaa;
+          position: relative;
+        }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet"/>
+  </head>
+  <body onload="setContent()">
+    <div class="grid-container">
+        <div class="grid-item" style="border: 2px solid #eee;border-radius: 10px;box-shadow: none;margin-top: 10px;text-align: center;">
+            <span>
+                <img id="imageContainer" ondblclick="openFileUpload()" src="https://play-lh.googleusercontent.com/8zeY2rMMqLfUYBGebRWALtqxcE00WK2y43inlWRSEbjiZJs_vW1N1r4CoIF-FCQ3wvU" draggable="true" ondragstart="drags(event)" ondragend="dragEnd(event)" width="100" height="100"></img>
+                <div class="file-upload-container" id="upload" hidden="true">
+                    <input onchange="previewFiles(event)" id="fileInput" name="image" type="file" accept="image/*"/>
+                </div>  
+            </span>
+            <span>
+                <h1 id="Edit Text" class="draggable-text" draggable="true" ondragstart="drags(event)" style="font-size: 20px;">Edit Text</h1>
+            </span>
+            <span>
+                <label for="normalLink">YouTube Link:</label><br></br>
+                <input type="text" id="normalLink" placeholder="" style="width:100px" onchange="changeLink(event)"/><br></br>
+                <button onclick="convertAndEmbed()" class="btn btn-default" style="margin:5px">Generate</button><br></br>
+                <iframe draggable="true" ondragstart="drags(event)" id="embeddedVideo" width="140" height="100" frameborder="0" style="padding:10px"></iframe><br></br>
+                <!-- <div draggable="true" ondragstart="drags(event)" id="url" style="overflow: hidden;"></div> -->
+            </span>
+        </div>
+            <div class="grid-item">
+                <div class="container">
+                    <div class="options">
+                      <!-- Text Format -->
+                      <button id="bold" class="option-button format">
+                        <i class="fa-solid fa-bold"></i>
+                      </button>
+                      <button id="italic" class="option-button format">
+                        <i class="fa-solid fa-italic"></i>
+                      </button>
+                      <button id="underline" class="option-button format">
+                        <i class="fa-solid fa-underline"></i>
+                      </button>
+                      <button id="strikethrough" class="option-button format">
+                        <i class="fa-solid fa-strikethrough"></i>
+                      </button>
+                      <button id="superscript" class="option-button script">
+                        <i class="fa-solid fa-superscript"></i>
+                      </button>
+                      <button id="subscript" class="option-button script">
+                        <i class="fa-solid fa-subscript"></i>
+                      </button>
+              
+                      <!-- List -->
+                      <button id="insertOrderedList" class="option-button">
+                        <div class="fa-solid fa-list-ol"></div>
+                      </button>
+                      <button id="insertUnorderedList" class="option-button">
+                        <i class="fa-solid fa-list"></i>
+                      </button>
+              
+                      <!-- Undo/Redo -->
+                      <button id="undo" class="option-button">
+                        <i class="fa-solid fa-rotate-left"></i>
+                      </button>
+                      <button id="redo" class="option-button">
+                        <i class="fa-solid fa-rotate-right"></i>
+                      </button>
+              
+                      <!-- Link -->
+                      <button id="createLink" class="adv-option-button">
+                        <i class="fa fa-link"></i>
+                      </button>
+                      <button id="unlink" class="option-button">
+                        <i class="fa fa-unlink"></i>
+                      </button>
+              
+                      <!-- Alignment -->
+                      <button id="justifyLeft" class="option-button align">
+                        <i class="fa-solid fa-align-left"></i>
+                      </button>
+                      <button id="justifyCenter" class="option-button align">
+                        <i class="fa-solid fa-align-center"></i>
+                      </button>
+                      <button id="justifyRight" class="option-button align">
+                        <i class="fa-solid fa-align-right"></i>
+                      </button>
+                      <button id="justifyFull" class="option-button align">
+                        <i class="fa-solid fa-align-justify"></i>
+                      </button>
+                      <button id="indent" class="option-button spacing">
+                        <i class="fa-solid fa-indent"></i>
+                      </button>
+                      <button id="outdent" class="option-button spacing">
+                        <i class="fa-solid fa-outdent"></i>
+                      </button>
+              
+                      <!-- Headings -->
+                      <select id="formatBlock" class="adv-option-button">
+                        <option value="H1">H1</option>
+                        <option value="H2">H2</option>
+                        <option value="H3">H3</option>
+                        <option value="H4">H4</option>
+                        <option value="H5">H5</option>
+                        <option value="H6">H6</option>
+                      </select>
+              
+                      <!-- Font -->
+                      <select id="fontName" class="adv-option-button"></select>
+                      <select id="fontSize" class="adv-option-button"></select>
+              
+                      <!-- Color -->
+                      <div class="input-wrapper">
+                        <input type="color" id="foreColor" class="adv-option-button" />
+                        <label for="foreColor">Font Color</label>
+                      </div>
+                      <div class="input-wrapper">
+                        <input type="color" id="backColor" class="adv-option-button" />
+                        <label for="backColor">Highlight Color</label>
+                      </div>
+                    </div>
+                    <div id="content" contenteditable="true" style="height: 75vh;margin: 10px;overflow: scroll;"></div>
+                  </div>
+            </div>
+        </div>
+      <script>
+        let optionsButtons = document.querySelectorAll(".option-button");
+        let advancedOptionButton = document.querySelectorAll(".adv-option-button");
+        let fontName = document.getElementById("fontName");
+        let fontSizeRef = document.getElementById("fontSize");
+        let writingArea = document.getElementById("text-input");
+        let linkButton = document.getElementById("createLink");
+        let alignButtons = document.querySelectorAll(".align");
+        let spacingButtons = document.querySelectorAll(".spacing");
+        let formatButtons = document.querySelectorAll(".format");
+        let scriptButtons = document.querySelectorAll(".script");
+        var embedLink;
+        let draggedIframe;
+
+        const foreColorInput = document.getElementById("foreColor");
+        const backColorInput = document.getElementById("backColor");
+
+        foreColorInput.addEventListener("input", applyFontColor);
+        backColorInput.addEventListener("input", applyHighlightColor);
+
+        function applyFontColor() {
+          console.log('font');
+          document.execCommand("foreColor", false, foreColorInput.value);
+        }
+
+        function applyHighlightColor() {
+          console.log('backg');
+          document.execCommand("backColor", false, backColorInput.value);
+        }
+        function drags(ev) {
+            console.log('drag',ev.target.id);
+            if(ev.target.id == 'embeddedVideo'){
+                var tar = document.getElementById('content');
+                tar.ondrop = drops;
+                tar.ondragover = allowDrop;
+            }else{
+                var tar = document.getElementById('content');
+                tar.ondrop = null;
+                tar.ondragover = null;
+            }
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+        function dragEnd(ev) {
+          let elements = document.querySelectorAll("div#content img");
+          elements.forEach((element) => {
+            element.classList.add('resizable-image');
+          });
+                        
+          const resizableImages = document.querySelectorAll(".resizable-image");
+          resizableImages.forEach((image) => {
+          let initialWidth, initialHeight, initialX, initialY;
+
+          image.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+
+            initialWidth = image.clientWidth;
+            initialHeight = image.clientHeight;
+            initialX = e.clientX;
+            initialY = e.clientY;
+
+            const mouseMoveHandler = (event) => {
+              const widthDifference = event.clientX - initialX;
+              const heightDifference = event.clientY - initialY;
+              const newWidth = initialWidth + widthDifference;
+              const newHeight = initialHeight + heightDifference;
+
+              image.style.width = `${newWidth}px`;
+              image.style.height = `${newHeight}px`;
+            };
+            const mouseUpHandler = () => {
+              document.removeEventListener("mousemove", mouseMoveHandler);
+              document.removeEventListener("mouseup", mouseUpHandler);
+            };
+
+            document.addEventListener("mousemove", mouseMoveHandler);
+            document.addEventListener("mouseup", mouseUpHandler);
+            });
+          });
+        }
+        function allowDrop(ev) {
+        ev.preventDefault();
+        }
+        function addResizable(iframeContainer) {
+          const resizeHandle = document.createElement("div");
+          resizeHandle.className = "resize-handle";
+          iframeContainer.appendChild(resizeHandle);
+          console.log('Iframe2',iframeContainer);
+          let isResizing = false;
+          let startX;
+          let startY;
+          let startWidth;
+          let startHeight;
+
+          resizeHandle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startWidth = iframeContainer.offsetWidth;
+            startHeight = iframeContainer.offsetHeight;
+            e.preventDefault();
+
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+          });
+
+          function handleMouseMove(e) {
+            console.log('handleMouseUp2');
+            if (!isResizing) return;
+
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+
+            iframeContainer.style.width = `${startWidth + deltaX}px`;
+            iframeContainer.style.height = `${startHeight + deltaY}px`;
+            const iframe = iframeContainer.querySelector("iframe");
+
+            iframe.width = iframeContainer.offsetWidth;
+              iframe.height = iframeContainer.offsetHeight;
+          }
+
+          function handleMouseUp() {
+            console.log('handleMouseUp1');
+            if (!isResizing) return;
+
+            isResizing = false;
+
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            // After resizing the container, adjust the iframe dimensions
+            const iframe = iframeContainer.querySelector("iframe");
+            // if (iframe) {
+              console.log('iframe');
+              iframe.width = iframeContainer.offsetWidth;
+              iframe.height = iframeContainer.offsetHeight;
+            // }
+          }
+        }
+        function deleteIframeContainer(iframeContainer) {
+          iframeContainer.remove();
+        }
+        function drops(ev) {
+            console.log('drop');
+            ev.preventDefault();
+            var data = ev.dataTransfer.getData("text");
+            var droppedElement = document.getElementById(data);
+
+            if (ev.target.nodeName == 'IMG'){
+                console.log('Element is an image');
+
+            }
+            if(data == 'embeddedVideo'){
+              var clone = document.getElementById(data).cloneNode(true);
+              var iframeContainer = document.createElement('div');
+              console.log('Iframe',iframeContainer);
+              iframeContainer.className = 'iframe-container';
+              iframeContainer.setAttribute("contenteditable", "false");
+
+              var deleteIcon = document.createElement('div');
+              deleteIcon.className = 'delete-icon';
+              deleteIcon.innerHTML = '&#10006;';
+              deleteIcon.onclick = function() {
+                deleteIframeContainer(iframeContainer);
+              };
+              iframeContainer.appendChild(deleteIcon);
+              iframeContainer.appendChild(clone);
+              addResizable(iframeContainer);
+              ev.target.appendChild(iframeContainer);
+              
+
+            }else{
+                  var tar = document.getElementById('content');
+                  let elements = document.querySelectorAll("div#content img");
+                  elements.forEach((element) => {
+                  element.classList.add('resizable-image');
+                  console.log('resize1',element);
+                  });
+                  var clone = document.getElementById(data).cloneNode(true);
+                  tar.appendChild(clone);
+                  logDivContent();
+                  const resizableImages = document.querySelectorAll(".resizable-image");
+
+                  resizableImages.forEach((image) => {
+                  let initialWidth, initialHeight, initialX, initialY;
+
+                  image.addEventListener("mousedown", (e) => {
+                  e.preventDefault();
+
+                  initialWidth = image.clientWidth;
+                  initialHeight = image.clientHeight;
+                  initialX = e.clientX;
+                  initialY = e.clientY;
+                  const mouseMoveHandler = (event) => {
+                      const widthDifference = event.clientX - initialX;
+                      const heightDifference = event.clientY - initialY;
+                      const newWidth = initialWidth + widthDifference;
+                      const newHeight = initialHeight + heightDifference;
+
+                      image.style.width = `${newWidth}px`;
+                      image.style.height = `${newHeight}px`;
+                  };
+
+                  const mouseUpHandler = () => {
+                      document.removeEventListener("mousemove", mouseMoveHandler);
+                      document.removeEventListener("mouseup", mouseUpHandler);
+                  };
+
+                  document.addEventListener("mousemove", mouseMoveHandler);
+                  document.addEventListener("mouseup", mouseUpHandler);
+                  });
+              });
+            }
+        }              
+        var div1 = document.getElementById("content");
+        div1.addEventListener("input", logDivContent);
+
+        function logDivContent() {
+          var divContent = div1.innerHTML;
+          console.log("Content --:", divContent);
+          var lexO = "https://chaitanya-dev-edition-dev-ed.lightning.force.com";
+          var payload = "Hello VF";
+          var message = {
+              name:"sampleVfToLWc",
+              payload:divContent
+          }
+          parent.postMessage(message, lexO);
+        }
+        function changeLink(event){
+        }
+        function convertAndEmbed() {
+          var normalLink = document.getElementById('normalLink').value;
+          var videoId = getVideoId(normalLink);
+          embedLink = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1';
+          // document.getElementById('url').innerHTML = embedLink;
+          document.getElementById('embeddedVideo').src = embedLink;
+          var editor = window.tinyMCEEditor;
+          if (editor && normalLink) {
+              console.log('videoId',videoId);
+              var youtubeEmbedCode = '<iframe draggable="true" src="https://www.youtube.com/embed/Da6kZ8JHA40?autoplay=1" ondragstart="drags(event)" id="embeddedVideo" width="160" height="100" frameborder="0"></iframe>';
+              editor.insertContent(youtubeEmbedCode);
+          }
+        }
+        function getVideoId(url) {
+          var videoId = url.split('v=')[1];
+          var ampersandPosition = videoId.indexOf('&');
+          if (ampersandPosition !== -1) {
+              videoId = videoId.substring(0, ampersandPosition);
+          }
+          return videoId;
+        }
+        function previewFiles(event){
+            const file = event.target.files[0];
+            console.log('ev',file);
+            if (file) {
+              if (file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/gif') {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('imageContainer').src = e.target.result;
+                    console.log('ev',e.target.result);
+                    document.getElementById('upload').hidden = true;
+                };
+                reader.readAsDataURL(file);
+              }else{
+                console.error('Unsupported image format. Please upload JPEG, PNG, or GIF.');
+              }
+            } else {
+                this.previewUrl = null;
+            }
+            const fileInput = document.getElementById("fileInput");
+            fileInput.value = "";
+        }
+        function openFileUpload() {
+          const fileInput = document.getElementById("fileInput");
+          fileInput.click();
+        }
+
+        let fontList = [
+          "Arial",
+          "Verdana",
+          "Times New Roman",
+          "Garamond",
+          "Georgia",
+          "Courier New",
+          "cursive",
+        ];
+  
+        const initializer = () => {
+          //function calls for highlighting buttons
+          //No highlights for link, unlink,lists, undo,redo since they are one time operations
+          highlighter(alignButtons, true);
+          highlighter(spacingButtons, true);
+          highlighter(formatButtons, false);
+          highlighter(scriptButtons, true);
+        
+          //create options for font names
+          fontList.map((value) => {
+            let option = document.createElement("option");
+            option.value = value;
+            option.innerHTML = value;
+            fontName.appendChild(option);
+          });
+        
+          //fontSize allows only till 7
+          for (let i = 1; i <= 7; i++) {
+            let option = document.createElement("option");
+            option.value = i;
+            option.innerHTML = i;
+            fontSizeRef.appendChild(option);
+          }
+        
+          //default size
+          fontSizeRef.value = 3;
+        };
+        
+        //main logic
+        const modifyText = (command, defaultUi, value) => {
+          //execCommand executes command on selected text
+          document.execCommand(command, defaultUi, value);
+        };
+        
+        //For basic operations which don't need value parameter
+        optionsButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            modifyText(button.id, false, null);
+          });
+        });
+        
+        //options that require value parameter (e.g colors, fonts)
+        advancedOptionButton.forEach((button) => {
+          button.addEventListener("change", () => {
+            modifyText(button.id, false, button.value);
+          });
+        });
+        
+        //link
+        linkButton.addEventListener("click", () => {
+          let userLink = prompt("Enter a URL");
+          //if link has http then pass directly else add https
+          if (/http/i.test(userLink)) {
+            modifyText(linkButton.id, false, userLink);
+          } else {
+            userLink = "http://" + userLink;
+            modifyText(linkButton.id, false, userLink);
+          }
+        });
+        
+        //Highlight clicked button
+        const highlighter = (className, needsRemoval) => {
+          className.forEach((button) => {
+            button.addEventListener("click", () => {
+              //needsRemoval = true means only one button should be highlight and other would be normal
+              if (needsRemoval) {
+                let alreadyActive = false;
+        
+                //If currently clicked button is already active
+                if (button.classList.contains("active")) {
+                  alreadyActive = true;
+                }
+        
+                //Remove highlight from other buttons
+                highlighterRemover(className);
+                if (!alreadyActive) {
+                  //highlight clicked button
+                  button.classList.add("active");
+                }
+              } else {
+                //if other buttons can be highlighted
+                button.classList.toggle("active");
+              }
+            });
+          });
+        };
+        const highlighterRemover = (className) => {
+          className.forEach((button) => {
+            button.classList.remove("active");
+          });
+        };
+        window.onload = initializer();
+      </script>
+    </body>
+</apex:page>
